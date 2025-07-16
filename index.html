@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFirstNFT DApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        h1 {
+            color: #0056b3;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MyFirstNFT DApp</h1>
+        <p>Interact with your deployed MyFirstNFT contract on Monad Testnet.</p>
+
+        <button id="connectWallet">Connect Wallet</button>
+        <div id="status">Wallet not connected.</div>
+
+        <p><strong>Contract Address:</strong> <span id="contractAddress">0x931911536239a641d04bc4C4cc5D589EC26304B6</span></p>
+        <p><strong>Contract Name:</strong> <span id="contractName">Loading...</span></p>
+        <p><strong>Contract Symbol:</strong> <span id="contractSymbol">Loading...</span></p>
+
+        <h2>Mint NFT</h2>
+        <input type="text" id="mintAddress" placeholder="Recipient Address (e.g., 0x...)">
+        <button id="mintNFT">Mint NFT</button>
+        <div id="mintStatus"></div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script>
+        const contractAddress = "0x931911536239a641d04bc4C4cc5D589EC26304B6";
+        const contractABI = [
+            // ERC721 constructor
+            "constructor()",
+            // ERC721 functions
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function safeMint(address to) public"
+        ];
+
+        let provider;
+        let signer;
+        let nftContract;
+
+        const connectWalletButton = document.getElementById('connectWallet');
+        const statusDiv = document.getElementById('status');
+        const contractNameSpan = document.getElementById('contractName');
+        const contractSymbolSpan = document.getElementById('contractSymbol');
+        const mintAddressInput = document.getElementById('mintAddress');
+        const mintNFTButton = document.getElementById('mintNFT');
+        const mintStatusDiv = document.getElementById('mintStatus');
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    nftContract = new ethers.Contract(contractAddress, contractABI, signer);
+                    statusDiv.textContent = "Wallet connected!";
+                    connectWalletButton.disabled = true;
+                    loadContractDetails();
+                } catch (error) {
+                    console.error("User denied account access or other error:", error);
+                    statusDiv.textContent = "Wallet connection failed.";
+                }
+            } else {
+                statusDiv.textContent = "MetaMask is not installed. Please install it to use this DApp.";
+            }
+        }
+
+        async function loadContractDetails() {
+            try {
+                const name = await nftContract.name();
+                const symbol = await nftContract.symbol();
+                contractNameSpan.textContent = name;
+                contractSymbolSpan.textContent = symbol;
+            } catch (error) {
+                console.error("Error loading contract details:", error);
+                contractNameSpan.textContent = "Error";
+                contractSymbolSpan.textContent = "Error";
+            }
+        }
+
+        async function mintNFT() {
+            const recipientAddress = mintAddressInput.value;
+            if (!recipientAddress) {
+                mintStatusDiv.textContent = "Please enter a recipient address.";
+                return;
+            }
+
+            try {
+                mintStatusDiv.textContent = "Minting NFT... Please confirm in your wallet.";
+                const tx = await nftContract.safeMint(recipientAddress);
+                await tx.wait();
+                mintStatusDiv.textContent = `NFT minted successfully! Transaction hash: ${tx.hash}`;
+            } catch (error) {
+                console.error("Error minting NFT:", error);
+                mintStatusDiv.textContent = `Minting failed: ${error.message || error}`;
+            }
+        }
+
+        connectWalletButton.addEventListener('click', connectWallet);
+        mintNFTButton.addEventListener('click', mintNFT);
+
+        // Initial load to check if wallet is already connected
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress) {
+            connectWallet();
+        }
+    </script>
+</body>
+</html>

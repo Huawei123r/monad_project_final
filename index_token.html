@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyFirstToken DApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        h1 {
+            color: #0056b3;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MyFirstToken DApp</h1>
+        <p>Interact with your deployed MyFirstToken contract on Monad Testnet.</p>
+
+        <button id="connectWallet">Connect Wallet</button>
+        <div id="status">Wallet not connected.</div>
+
+        <p><strong>Contract Address:</strong> <span id="contractAddress">0x9Eb4d5A6eD8199751c730Bd653CC3C21760C152b</span></p>
+        <p><strong>Contract Name:</strong> <span id="contractName">Loading...</span></p>
+        <p><strong>Contract Symbol:</strong> <span id="contractSymbol">Loading...</span></p>
+        <p><strong>Total Supply:</strong> <span id="totalSupply">Loading...</span></p>
+        <p><strong>Your Balance:</strong> <span id="yourBalance">Loading...</span></p>
+
+        <h2>Mint Tokens (Owner Only)</h2>
+        <input type="text" id="mintAddress" placeholder="Recipient Address (e.g., 0x...)">
+        <input type="number" id="mintAmount" placeholder="Amount to Mint">
+        <button id="mintTokens">Mint Tokens</button>
+        <div id="mintStatus"></div>
+
+        <h2>Transfer Tokens</h2>
+        <input type="text" id="transferAddress" placeholder="Recipient Address (e.g., 0x...)">
+        <input type="number" id="transferAmount" placeholder="Amount to Transfer">
+        <button id="transferTokens">Transfer Tokens</button>
+        <div id="transferStatus"></div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script>
+        const contractAddress = "0x9Eb4d5A6eD8199751c730Bd653CC3C21760C152b";
+        const contractABI = [
+            // ERC20 constructor
+            "constructor(uint256 initialSupply)",
+            // ERC20 functions
+            "function name() view returns (string)",
+            "function symbol() view returns (string)",
+            "function totalSupply() view returns (uint256)",
+            "function balanceOf(address account) view returns (uint256)",
+            "function transfer(address to, uint256 amount) returns (bool)",
+            // Custom mint function
+            "function mint(address to, uint256 amount) public"
+        ];
+
+        let provider;
+        let signer;
+        let tokenContract;
+
+        const connectWalletButton = document.getElementById('connectWallet');
+        const statusDiv = document.getElementById('status');
+        const contractNameSpan = document.getElementById('contractName');
+        const contractSymbolSpan = document.getElementById('contractSymbol');
+        const totalSupplySpan = document.getElementById('totalSupply');
+        const yourBalanceSpan = document.getElementById('yourBalance');
+        const mintAddressInput = document.getElementById('mintAddress');
+        const mintAmountInput = document.getElementById('mintAmount');
+        const mintTokensButton = document.getElementById('mintTokens');
+        const mintStatusDiv = document.getElementById('mintStatus');
+        const transferAddressInput = document.getElementById('transferAddress');
+        const transferAmountInput = document.getElementById('transferAmount');
+        const transferTokensButton = document.getElementById('transferTokens');
+        const transferStatusDiv = document.getElementById('transferStatus');
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    tokenContract = new ethers.Contract(contractAddress, contractABI, signer);
+                    statusDiv.textContent = "Wallet connected!";
+                    connectWalletButton.disabled = true;
+                    loadContractDetails();
+                    setInterval(loadContractDetails, 5000); // Refresh balance every 5 seconds
+                } catch (error) {
+                    console.error("User denied account access or other error:", error);
+                    statusDiv.textContent = "Wallet connection failed.";
+                }
+            } else {
+                statusDiv.textContent = "MetaMask is not installed. Please install it to use this DApp.";
+            }
+        }
+
+        async function loadContractDetails() {
+            try {
+                const name = await tokenContract.name();
+                const symbol = await tokenContract.symbol();
+                const totalSupply = await tokenContract.totalSupply();
+                const signerAddress = await signer.getAddress();
+                const yourBalance = await tokenContract.balanceOf(signerAddress);
+
+                contractNameSpan.textContent = name;
+                contractSymbolSpan.textContent = symbol;
+                totalSupplySpan.textContent = ethers.utils.formatEther(totalSupply) + " " + symbol;
+                yourBalanceSpan.textContent = ethers.utils.formatEther(yourBalance) + " " + symbol;
+            } catch (error) {
+                console.error("Error loading contract details:", error);
+                contractNameSpan.textContent = "Error";
+                contractSymbolSpan.textContent = "Error";
+                totalSupplySpan.textContent = "Error";
+                yourBalanceSpan.textContent = "Error";
+            }
+        }
+
+        async function mintTokens() {
+            const recipientAddress = mintAddressInput.value;
+            const amount = mintAmountInput.value;
+            if (!recipientAddress || !amount) {
+                mintStatusDiv.textContent = "Please enter recipient address and amount.";
+                return;
+            }
+
+            try {
+                mintStatusDiv.textContent = "Minting tokens... Please confirm in your wallet.";
+                const amountWei = ethers.utils.parseEther(amount);
+                const tx = await tokenContract.mint(recipientAddress, amountWei);
+                await tx.wait();
+                mintStatusDiv.textContent = `Tokens minted successfully! Transaction hash: ${tx.hash}`;
+                loadContractDetails();
+            } catch (error) {
+                console.error("Error minting tokens:", error);
+                mintStatusDiv.textContent = `Minting failed: ${error.message || error}`;
+            }
+        }
+
+        async function transferTokens() {
+            const recipientAddress = transferAddressInput.value;
+            const amount = transferAmountInput.value;
+            if (!recipientAddress || !amount) {
+                transferStatusDiv.textContent = "Please enter recipient address and amount.";
+                return;
+            }
+
+            try {
+                transferStatusDiv.textContent = "Transferring tokens... Please confirm in your wallet.";
+                const amountWei = ethers.utils.parseEther(amount);
+                const tx = await tokenContract.transfer(recipientAddress, amountWei);
+                await tx.wait();
+                transferStatusDiv.textContent = `Tokens transferred successfully! Transaction hash: ${tx.hash}`;
+                loadContractDetails();
+            } catch (error) {
+                console.error("Error transferring tokens:", error);
+                transferStatusDiv.textContent = `Transfer failed: ${error.message || error}`;
+            }
+        }
+
+        connectWalletButton.addEventListener('click', connectWallet);
+        mintTokensButton.addEventListener('click', mintTokens);
+        transferTokensButton.addEventListener('click', transferTokens);
+
+        // Initial load to check if wallet is already connected
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress) {
+            connectWallet();
+        }
+    </script>
+</body>
+</html>

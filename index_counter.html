@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter DApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        h1 {
+            color: #0056b3;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #e9ecef;
+        }
+        #currentCount {
+            font-size: 2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            padding: 8px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Counter DApp</h1>
+        <p>Interact with your deployed Counter contract on Monad Testnet.</p>
+
+        <button id="connectWallet">Connect Wallet</button>
+        <div id="status">Wallet not connected.</div>
+
+        <p><strong>Contract Address:</strong> <span id="contractAddress">0x535A7B41b15Aea6fa21c89Dd80C0035Acf5a9c06</span></p>
+        <p><strong>Current Count:</strong> <span id="currentCount">Loading...</span></p>
+
+        <button id="incrementButton">Increment</button>
+        <button id="decrementButton">Decrement</button>
+        <br>
+        <input type="number" id="setCountValue" placeholder="Enter a new count">
+        <button id="setCountButton">Set Count</button>
+        <div id="transactionStatus"></div>
+    </div>
+
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js"></script>
+    <script>
+        const contractAddress = "0x535A7B41b15Aea6fa21c89Dd80C0035Acf5a9c06";
+        const contractABI = [
+            "function count() view returns (uint256)",
+            "function increment() public",
+            "function decrement() public",
+            "function setCount(uint256 _count) public",
+            "function getCount() public view returns (uint256)"
+        ];
+
+        let provider;
+        let signer;
+        let counterContract;
+
+        const connectWalletButton = document.getElementById('connectWallet');
+        const statusDiv = document.getElementById('status');
+        const currentCountSpan = document.getElementById('currentCount');
+        const incrementButton = document.getElementById('incrementButton');
+        const decrementButton = document.getElementById('decrementButton');
+        const setCountButton = document.getElementById('setCountButton');
+        const setCountValueInput = document.getElementById('setCountValue');
+        const transactionStatusDiv = document.getElementById('transactionStatus');
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    counterContract = new ethers.Contract(contractAddress, contractABI, signer);
+                    statusDiv.textContent = "Wallet connected!";
+                    connectWalletButton.disabled = true;
+                    loadCurrentCount();
+                    setInterval(loadCurrentCount, 3000); // Refresh count every 3 seconds
+                } catch (error) {
+                    console.error("User denied account access or other error:", error);
+                    statusDiv.textContent = "Wallet connection failed.";
+                }
+            } else {
+                statusDiv.textContent = "MetaMask is not installed. Please install it to use this DApp.";
+            }
+        }
+
+        async function loadCurrentCount() {
+            try {
+                const currentCount = await counterContract.getCount();
+                currentCountSpan.textContent = currentCount.toString();
+            } catch (error) {
+                console.error("Error loading current count:", error);
+                currentCountSpan.textContent = "Error";
+            }
+        }
+
+        async function incrementCount() {
+            try {
+                transactionStatusDiv.textContent = "Incrementing... Please confirm in your wallet.";
+                const tx = await counterContract.increment();
+                await tx.wait();
+                transactionStatusDiv.textContent = `Incremented! Transaction hash: ${tx.hash}`;
+                loadCurrentCount();
+            } catch (error) {
+                console.error("Error incrementing:", error);
+                transactionStatusDiv.textContent = `Increment failed: ${error.message || error}`;
+            }
+        }
+
+        async function decrementCount() {
+            try {
+                transactionStatusDiv.textContent = "Decrementing... Please confirm in your wallet.";
+                const tx = await counterContract.decrement();
+                await tx.wait();
+                transactionStatusDiv.textContent = `Decremented! Transaction hash: ${tx.hash}`;
+                loadCurrentCount();
+            } catch (error) {
+                console.error("Error decrementing:", error);
+                transactionStatusDiv.textContent = `Decrement failed: ${error.message || error}`;
+            }
+        }
+
+        async function setCount() {
+            try {
+                const value = setCountValueInput.value;
+                if (!value) {
+                    transactionStatusDiv.textContent = "Please enter a value to set.";
+                    return;
+                }
+                transactionStatusDiv.textContent = "Setting count... Please confirm in your wallet.";
+                const tx = await counterContract.setCount(value);
+                await tx.wait();
+                transactionStatusDiv.textContent = `Count set! Transaction hash: ${tx.hash}`;
+                loadCurrentCount();
+            } catch (error) {
+                console.error("Error setting count:", error);
+                transactionStatusDiv.textContent = `Set count failed: ${error.message || error}`;
+            }
+        }
+
+        connectWalletButton.addEventListener('click', connectWallet);
+        incrementButton.addEventListener('click', incrementCount);
+        decrementButton.addEventListener('click', decrementCount);
+        setCountButton.addEventListener('click', setCount);
+
+        // Initial load to check if wallet is already connected
+        if (typeof window.ethereum !== 'undefined' && window.ethereum.selectedAddress) {
+            connectWallet();
+        }
+    </script>
+</body>
+</html>
+
