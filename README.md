@@ -49,7 +49,7 @@ Below are textual representations of the dApp UIs to provide a visual context of
 
 ### TodoList dApp
 
-```
+`
 .--------------------------------------------------.
 |  ✅ TodoList DApp                                |
 |--------------------------------------------------|
@@ -67,11 +67,11 @@ Below are textual representations of the dApp UIs to provide a visual context of
 |  '--------------------------------------------'  |
 |                                                  |
 '--------------------------------------------------'
-```
+`
 
 ### NFT Marketplace dApp
 
-```
+`
 .--------------------------------------------------.
 |  🖼️ NFT Marketplace                             |
 |--------------------------------------------------|
@@ -89,7 +89,7 @@ Below are textual representations of the dApp UIs to provide a visual context of
 |  '--------------------------------------------'  |
 |                                                  |
 '--------------------------------------------------'
-```
+`
 
 ## 🗂 See devjournal.md for deployment timestamps, tx hashes, and Foundry commands.
 
@@ -98,43 +98,43 @@ Below are textual representations of the dApp UIs to provide a visual context of
 Here are some sample `cast` commands to interact with the deployed contracts. Make sure your `.env` file is populated with your `PRIVATE_KEY` and `MONAD_RPC_URL`.
 
 ### Counter
-```bash
+`bash
 # Increment the counter
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x299Cca24361b9a5437494c34622F5BB65312CdD1 "increment()"
 
 # Get the current count
 cast call --rpc-url $MONAD_RPC_URL 0x299Cca24361b9a5437494c34622F5BB65312CdD1 "getCount()(uint256)"
-```
+`
 
 ### MyFirstToken (ERC-20)
-```bash
+`bash
 # Check your balance
 cast call --rpc-url $MONAD_RPC_URL 0x46E4cb3B7763a5819B94F18FB1B14fb9B5208790 "balanceOf(address)(uint256)" $YOUR_ADDRESS
 
 # Transfer tokens
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x46E4cb3B7763a5819B94F18FB1B14fb9B5208790 "transfer(address,uint256)" $RECIPIENT_ADDRESS 1000000000000000000
-```
+`
 
 ### MyFirstNFT (ERC-721)
-```bash
+`bash
 # Mint a new NFT (owner only)
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xf8b5d80c2dBebCD3c59Ce62FB5515D97e7412E8a "safeMint(address)" $YOUR_ADDRESS
 
 # Check the owner of an NFT
 cast call --rpc-url $MONAD_RPC_URL 0xf8b5d80c2dBebCD3c59Ce62FB5515D97e7412E8a "ownerOf(uint256)(address)" $TOKEN_ID
-```
+`
 
 ### SecondToken (ERC-20)
-```bash
+`bash
 # Check your balance
 cast call --rpc-url $MONAD_RPC_URL 0x11C3F7863d7A2cee3BCE4e68B381493b1589EB3d "balanceOf(address)(uint256)" $YOUR_ADDRESS
 
 # Transfer tokens
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x11C3F7863d7A2cee3BCE4e68B381493b1589EB3d "transfer(address,uint256)" $RECIPIENT_ADDRESS 1000000000000000000
-```
+`
 
 ### SimpleDEX
-```bash
+`bash
 # Add liquidity (assuming you have approved the DEX to spend your tokens)
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xe0cba59A3186Fe5f3c9053e82d2855BFD537c850 "addLiquidity(uint256,uint256)" 1000000000000000000 1000000000000000000
 
@@ -143,10 +143,10 @@ cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xe0cba59A3186Fe5f
 
 # Check Token1 reserve
 cast call --rpc-url $MONAD_RPC_URL 0xe0cba59A3186Fe5f3c9053e82d2855BFD537c850 "getReserve(address)(uint256)" 0x46E4cb3B7763a5819B94F18FB1B14fb9B5208790
-```
+`
 
 ### PausableContract
-```bash
+`bash
 # Set the value
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x5924f8fD5aA85Dd40b53F43AE8ea482cD84B906A "setValue(uint256)" 123
 
@@ -158,10 +158,10 @@ cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x5924f8fD5aA85Dd4
 
 # Unpause the contract
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x5924f8fD5aA85Dd40b53F43AE8ea482cD84B906A "unpause()"
-```
+`
 
 ### Time-Locked Wallet
-```bash
+`bash
 # Deposit ETH
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY --value 0.1ether 0xa226E8D4F997ce60e22300455405a0a54c93D91D "deposit()"
 
@@ -176,19 +176,19 @@ cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xa226E8D4F997ce60
 
 # Set a new unlock time for a user (owner only)
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xa226E8D4F997ce60e22300455405a0a54c93D91D "setUnlockTime(address,uint256)" $USER_ADDRESS $NEW_UNLOCK_TIMESTAMP
-```
+`
 
 ### Reentrancy Guard
-```bash
+`bash
 # Deposit ETH
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY --value 0.1ether 0xa502Fe7A4f5B0f9e369Ad3260d6808Cec9a507DC "deposit()"
 
 # Withdraw ETH
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xa502Fe7A4f5B0f9e369Ad3260d6808Cec9a507DC "withdraw(uint256)" 100000000000000000
-```
+`
 
 ### TodoList
-```bash
+`bash
 # Create a new todo
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xdf07ea1f7f4b042584475235A829afc2b43485E7 "create(string)" "My new todo"
 
@@ -200,10 +200,10 @@ cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0xdf07ea1f7f4b0425
 
 # Get the number of todos
 cast call --rpc-url $MONAD_RPC_URL 0xdf07ea1f7f4b042584475235A829afc2b43485E7 "getTodoCount()(uint256)"
-```
+`
 
 ### Box (Upgradeable)
-```bash
+`bash
 # Store a new value
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x61DE40ee9DA523A96Da02A5521c4122B69EFF22C "store(uint256)" 42
 
@@ -212,15 +212,15 @@ cast call --rpc-url $MONAD_RPC_URL 0x61DE40ee9DA523A96Da02A5521c4122B69EFF22C "r
 
 # Increment the value (after upgrading to BoxV2)
 cast send --rpc-url $MONAD_RPC_URL --private-key $PRIVATE_KEY 0x61DE40ee9DA523A96Da02A5521c4122B69EFF22C "increment()"
-```
+`
 
 ### Automated Interaction Script
 This script demonstrates how to interact with the deployed contracts programmatically using `ethers.js`.
 
 To run the script:
-```bash
+`bash
 node scripts/auto_interact.js
-```
+`
 
 ## ⛽️ Gas Efficiency
 
@@ -258,18 +258,18 @@ These contracts serve as practical examples of how to build robust and feature-r
 This project includes a basic off-chain indexer to parse and analyze events emitted by the smart contracts. The `analytics/indexer.js` script demonstrates how to listen for events and store them in a local database for further analysis.
 
 To run the indexer:
-```bash
+`bash
 node analytics/indexer.js
-```
+`
 
 ## 🔬 Gas Profiling & Stress Tests
 
 This project includes a suite of stress tests to analyze the gas consumption of the smart contracts under heavy load. The `test/StressTests.t.sol` file contains tests that simulate a high volume of transactions and interactions with the contracts.
 
 To run the stress tests:
-```bash
+`bash
 forge test --match-path test/StressTests.t.sol -vvv
-```
+`
 
 ## 🤖 AI Integration
 
@@ -402,26 +402,26 @@ Here's a summary of the projects included in this portfolio:
 To explore these projects locally, follow these steps:
 
 1.  **Clone the repository:**
-    ```bash
+    `bash
     git clone https://github.com/Joker123r/my_first_monad_project.git
     cd my_first_monad_project
-    ```
+    `
 
 2.  **Install Foundry:**
     If you don't have Foundry installed, follow the instructions [here](https://book.getfoundry.sh/getting-started/installation).
 
 3.  **Install Node.js dependencies (for Hardhat projects, if any):**
-    ```bash
+    `bash
     npm install
-    ```
+    `
 
 4.  **Set up Environment Variables:**
     Create a `.env` file in the root directory and add your `PRIVATE_KEY` and `MONAD_RPC_URL` (e.g., `https://testnet-rpc.monad.xyz`). You can obtain testnet funds from the [Monad Testnet Faucet](https://testnet.monad.xyz).
 
 5.  **Build Contracts:**
-    ```bash
+    `bash
     forge build
-    ```
+    `
 
 6.  **Interact with Deployed Contracts:**
     Refer to the `dev_journal.md` file for specific interaction instructions for each deployed contract using `cast` commands.
